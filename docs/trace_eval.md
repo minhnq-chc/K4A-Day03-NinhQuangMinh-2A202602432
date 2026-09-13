@@ -74,7 +74,7 @@ Dán 1 đoạn trích xuất log tiêu biểu từ file `docs/trace_waterfall.js
 - **Kết quả test:** Gemini hoàn tất phản hồi live cho TC01–TC02; TC03 đã thực hiện hai tool call live (tra lịch rồi booking) trước khi Free Tier trả HTTP 429. TC05 được application guardrail dừng an toàn, không gọi tool. Sau bản sửa rate-limit, regression offline đạt 8/8 TC.
 - **Số lượt gọi Tool qua MCP Server trong live trace trước throttle:** 4 lượt; tất cả observation dùng dữ liệu mô phỏng tối thiểu.
 - **Context window:** Giữ tối đa 4 lượt hội thoại gần nhất trong RAM của phiên interactive; không ghi lịch sử hội thoại vào trace hoặc file.
-- **Kết quả đẩy Repo nộp bài:** [ ] Anh thực hiện Commit và Push mã nguồn thành công lên GitHub cá nhân.
+- **Kết quả đẩy Repo nộp bài:** [x] Đã Commit và Push mã nguồn lên GitHub cá nhân.
 
 ---
 

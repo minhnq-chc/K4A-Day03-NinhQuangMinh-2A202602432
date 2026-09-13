@@ -3,9 +3,40 @@
     "step": 1,
     "query": "Tôi muốn khám chuyên khoa Da liễu tại Vinmec. Hãy cho tôi biết các bác sĩ và lịch còn trống vào ngày 20/09/2026.",
     "provider": "GeminiProvider",
-    "action_type": "PROVIDER_ERROR",
-    "thought": "Live provider lỗi; dừng thay vì fallback Mock để không làm sai bằng chứng nghiệm thu.",
-    "output": "Gemini API không thể xử lý request: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash is no longer available to new users. Please update your code to use models/gemini-3.6-flash for the latest features and improvements. We recommend you to use the Interactions API.', 'status': 'NOT_FOUND'}}",
-    "latency_ms": 1785.86
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "get_doctor_availability",
+    "arguments": {
+      "preferred_date": "2026-09-20",
+      "specialty": "Da liễu"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "specialty": "Da liễu",
+      "preferred_date": "2026-09-20",
+      "data": {
+        "doctors": [
+          {
+            "doctor_id": "DOC-DL-01",
+            "display_name": "Bác sĩ Da liễu 01 (mô phỏng)",
+            "specialty": "Da liễu",
+            "available_slots": [
+              "2026-09-20T09:00:00+07:00",
+              "2026-09-20T10:30:00+07:00"
+            ]
+          }
+        ]
+      },
+      "data_classification": "MOCK_LAB_DATA"
+    },
+    "latency_ms": 2947.06
+  },
+  {
+    "step": 2,
+    "query": "Tôi muốn khám chuyên khoa Da liễu tại Vinmec. Hãy cho tôi biết các bác sĩ và lịch còn trống vào ngày 20/09/2026.",
+    "provider": "GeminiProvider",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Chào bạn, dưới đây là thông tin bác sĩ và các khung giờ khám còn trống chuyên khoa Da liễu tại Vinmec vào ngày 20/09/2026 (dữ liệu mô phỏng). Bác sĩ Da liễu 01 (mã DOC-DL-01) có các slot 09:00 và 10:30. Vui lòng chọn bác sĩ/slot và xác nhận đồng ý chia sẻ dữ liệu tối thiểu trước khi đặt.",
+    "latency_ms": 4403.73
   }
 ]

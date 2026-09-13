@@ -133,7 +133,12 @@
     
     // Convert markdown basic formatting to HTML (bold, lists, line breaks)
     function formatMessage(text) {
-      let html = text
+      let html = String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
         .replace(/\n/g, '<br/>');
@@ -205,9 +210,10 @@
         const eventsHtml = data.events.map(e => {
           let icon = 'fa-cog';
           let color = 'text-gray-500';
-          if(e.action_type === 'TOOL_CALL') { icon = 'fa-wrench'; color = 'text-blue-500'; }
-          else if(e.action_type === 'THOUGHT') { icon = 'fa-lightbulb'; color = 'text-amber-500'; }
-          else if(e.action_type === 'REPLY') { icon = 'fa-reply'; color = 'text-green-500'; }
+          if(e.action_type === 'TOOL_EXECUTION') { icon = 'fa-wrench'; color = 'text-blue-500'; }
+          else if(e.action_type === 'SAFETY_ROUTING') { icon = 'fa-triangle-exclamation'; color = 'text-red-500'; }
+          else if(e.action_type === 'FINAL_ANSWER') { icon = 'fa-reply'; color = 'text-green-500'; }
+          else if(e.action_type === 'PROVIDER_ERROR') { icon = 'fa-circle-xmark'; color = 'text-red-500'; }
           
           return `<div class="mb-3 border-b border-gray-100 pb-2 last:border-0"><div class="flex items-center gap-1.5 font-semibold text-gray-700"><i class="fas ${icon} ${color}"></i> ${e.action_type}</div><div class="pl-5 mt-1 text-gray-500">${e.tool_name ? `<span class="bg-gray-100 px-1.5 py-0.5 rounded text-[10px] border border-gray-200">${e.tool_name}</span>` : (e.thought ? e.thought.substring(0,60)+'...' : '')}</div></div>`;
         }).join('');

@@ -44,10 +44,10 @@ Dưới đây là các kịch bản đã được soạn sẵn để anh có th�
 - *Agent Activity:* Không gọi Tool `book_medical_appointment`.
 
 > **Anh nhập (Copy - Bước 3.2):**
-> `Được rồi, tôi đồng ý chia sẻ dữ liệu. Hãy xác nhận đặt lịch khám cho PT-1001.`
+> `Tôi đồng ý chia sẻ dữ liệu tối thiểu và xác nhận đặt lịch cho PT-1001 với bác sĩ DOC-DL-01 lúc 2026-09-20T09:00:00+07:00.`
 
 **Kỳ vọng hiển thị:** 
-- Agent sẽ tiến hành đặt lịch thành công.
+- Agent sẽ tra lại slot rồi tiến hành đặt lịch mô phỏng thành công.
 - *Agent Activity:* Gọi `book_medical_appointment` với `consent_to_share: true` và `patient_confirmed: true`.
 
 ---

@@ -57,8 +57,11 @@ class handler(BaseHTTPRequestHandler):
                 "memory_turns": len(SESSION_HISTORY[session_id]) // 2,
             })
             
-        except Exception as e:
-            self.send_error_json(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+        except Exception:
+            self.send_error_json(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                "Demo chưa thể xử lý yêu cầu. Vui lòng thử lại.",
+            )
 
     def send_success_json(self, data):
         body = json.dumps(data, ensure_ascii=False).encode("utf-8")
