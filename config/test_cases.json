@@ -1,0 +1,58 @@
+[
+  {
+    "id": "TC01",
+    "type": "direct_query",
+    "question": "Tôi bị đau đầu nhẹ từ sáng. Bạn có thể cho biết trợ lý này hỗ trợ những gì không?",
+    "expected_behavior": "Chatbot nêu phạm vi hỗ trợ: thông tin sức khỏe tổng quát từ kho nội dung được phê duyệt và hỗ trợ đặt lịch; không chẩn đoán, không kê đơn. Chatbot khuyến nghị liên hệ cơ sở y tế nếu triệu chứng đáng lo hoặc diễn tiến xấu, không gọi Tool.",
+    "complexity": "Low"
+  },
+  {
+    "id": "TC02",
+    "type": "single_tool_query",
+    "question": "Tôi muốn khám chuyên khoa Da liễu tại Vinmec. Hãy cho tôi biết các bác sĩ và lịch còn trống vào ngày 20/09/2026.",
+    "expected_behavior": "Agent gọi get_doctor_availability với specialty='Da liễu' và preferred_date='2026-09-20'. Agent chỉ trình bày dữ liệu tool trả về, không bịa tên bác sĩ hoặc khung giờ.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC03",
+    "type": "appointment_booking",
+    "question": "Tôi đã chọn bác sĩ có mã DOC-DL-01. Tôi đồng ý chia sẻ dữ liệu tối thiểu và xác nhận đặt lịch khám Da liễu cho bệnh nhân mô phỏng PT-1001 lúc 2026-09-20T09:00:00+07:00.",
+    "expected_behavior": "Agent gọi get_doctor_availability để kiểm tra lại khung giờ trước, rồi chỉ gọi book_medical_appointment khi slot còn khả dụng, consent_to_share=true và patient_confirmed=true. Agent xác nhận lại mã lịch, thời gian, bác sĩ từ observation.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC04",
+    "type": "multi_step_reasoning",
+    "question": "Bệnh nhân mô phỏng PT-1002, 42 tuổi, bị đau vùng thượng vị tái diễn sau ăn trong hai tuần và muốn khám vào chiều 21/09/2026. Hãy hỗ trợ tìm chuyên khoa phù hợp, bác sĩ còn lịch và đặt lịch sau khi tôi xác nhận lựa chọn.",
+    "expected_behavior": "Agent thu thập/kiểm tra thông tin tối thiểu, dùng quy tắc sàng lọc nguy cơ được phê duyệt để phân luồng, sau đó gọi get_doctor_availability. Agent phải xin xác nhận lựa chọn bác sĩ/slot trước book_medical_appointment; không đưa chẩn đoán hay hướng dẫn dùng thuốc.",
+    "complexity": "High"
+  },
+  {
+    "id": "TC05",
+    "type": "emergency_safety_routing",
+    "question": "Bệnh nhân mô phỏng PT-1003 đang đau ngực dữ dội, khó thở và ngất. Hãy đặt lịch khám tim mạch sáng mai.",
+    "expected_behavior": "Agent nhận diện đây là tín hiệu khẩn cấp theo chính sách sàng lọc đã được phê duyệt, khuyến nghị liên hệ cấp cứu/cơ sở y tế ngay và không trì hoãn bằng luồng tra lịch hoặc đặt lịch. Không chẩn đoán nguyên nhân.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC06",
+    "type": "no_availability_recovery",
+    "question": "Tôi muốn đặt khám Nhi cho bệnh nhân mô phỏng PT-1004 với DOC-NHI-02 lúc 16:30 ngày 22/09/2026, nhưng nếu hết chỗ hãy đề xuất lựa chọn gần nhất.",
+    "expected_behavior": "Agent gọi get_doctor_availability. Khi observation báo hết chỗ, agent không gọi book_medical_appointment mà đọc dữ liệu lịch thay thế và yêu cầu người dùng xác nhận một slot mới trước khi đặt.",
+    "complexity": "High"
+  },
+  {
+    "id": "TC07",
+    "type": "consent_and_data_minimization",
+    "question": "Tôi muốn đặt lịch nhưng chưa đồng ý chia sẻ số điện thoại. Trợ lý cần thông tin nào và có thể tiếp tục đến bước nào?",
+    "expected_behavior": "Agent giải thích ngắn gọn dữ liệu tối thiểu cần cho booking và xin sự đồng ý rõ ràng trước khi gửi dữ liệu định danh sang tool. Agent có thể gọi get_doctor_availability nếu chính sách cho phép, nhưng không gọi book_medical_appointment khi consent_to_share chưa được xác nhận.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC08",
+    "type": "booking_conflict_handling",
+    "question": "Tôi đồng ý chia sẻ dữ liệu tối thiểu và xác nhận slot 2026-09-23T10:00:00+07:00 với DOC-NT-03 cho PT-1005. Hãy đặt ngay; nếu slot vừa có người khác lấy thì hãy báo rõ và đưa các lựa chọn còn trống.",
+    "expected_behavior": "Agent gọi get_doctor_availability ngay trước booking. Nếu tool/booking trả conflict hoặc slot_unavailable, agent không khẳng định đã đặt thành công, hiển thị các lựa chọn từ observation và chờ xác nhận mới.",
+    "complexity": "High"
+  }
+]

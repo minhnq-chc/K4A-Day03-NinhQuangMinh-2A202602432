@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vinmec Care Navigator — Demo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+    .chat-container { scroll-behavior: smooth; }
+    .message-bubble { animation: fadeIn 0.3s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .typing-indicator span { animation: blink 1.4s infinite both; height: 6px; width: 6px; background: #9ca3af; border-radius: 50%; display: inline-block; margin: 0 1px; }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            vinmec: { 50: '#f0fdfa', 100: '#ccfbf1', 500: '#14b8a6', 600: '#0d9488', 900: '#134e4a', navy: '#0f172a' }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="h-screen flex flex-col bg-gray-50 text-gray-800 overflow-hidden">
+  
+  <div class="flex-1 w-full max-w-4xl mx-auto flex flex-col h-full bg-white shadow-xl sm:rounded-2xl sm:my-6 overflow-hidden border border-gray-200">
+    
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10 shadow-sm">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 bg-vinmec-500 rounded-full flex items-center justify-center text-white shadow-md">
+          <i class="fas fa-stethoscope text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-vinmec-navy leading-tight">Vinmec Care Navigator</h1>
+          <p class="text-xs text-gray-500">Demo ReAct Agent · Lịch & mã bác sĩ mô phỏng</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold border border-emerald-200">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span id="provider">Mock local</span>
+      </div>
+    </header>
+
+    <!-- Notice -->
+    <div class="bg-amber-50 border-l-4 border-amber-400 px-6 py-3 flex items-start gap-3">
+      <i class="fas fa-exclamation-triangle text-amber-500 mt-0.5"></i>
+      <p class="text-sm text-amber-800 font-medium leading-snug">Không chẩn đoán hoặc kê đơn. Nếu có dấu hiệu khẩn cấp, hãy liên hệ cấp cứu hoặc đến cơ sở y tế ngay.</p>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden bg-gray-50/50">
+      
+      <!-- Chat Messages -->
+      <section class="flex-1 overflow-y-auto p-6 chat-container space-y-6" id="chat" aria-live="polite">
+        <!-- Initial Message -->
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-full bg-vinmec-100 text-vinmec-600 flex items-center justify-center flex-shrink-0 mt-1 shadow-sm border border-vinmec-200">
+            <i class="fas fa-robot text-sm"></i>
+          </div>
+          <div class="bg-white border border-gray-200 text-gray-800 px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm max-w-[85%] text-sm leading-relaxed message-bubble">
+            Chào anh/chị. Tôi là trợ lý ảo Vinmec, hỗ trợ tra lịch và đặt lịch khám. Anh/chị muốn khám chuyên khoa nào?
+          </div>
+        </div>
+      </section>
+
+      <!-- Sidebar / Activity (Hidden on mobile by default) -->
+      <aside class="hidden md:flex w-72 bg-white border-l border-gray-200 flex-col">
+        <div class="p-4 border-b border-gray-100 bg-gray-50/80">
+          <h2 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <i class="fas fa-microchip text-vinmec-500"></i> Agent Activity
+          </h2>
+        </div>
+        <div class="flex-1 p-4 overflow-y-auto text-xs text-gray-600 font-mono leading-relaxed" id="events-container">
+          <p id="events" class="text-gray-400 italic">Chưa có tool call trong phiên này.</p>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Input Area -->
+    <div class="bg-white border-t border-gray-200 p-4">
+      
+      <!-- Quick Actions -->
+      <div class="flex gap-2 overflow-x-auto pb-3 mb-1 no-scrollbar quick" aria-label="Câu hỏi mẫu">
+        <button data-query="Tôi muốn khám chuyên khoa Da liễu tại Vinmec. Hãy cho tôi biết các bác sĩ và lịch còn trống vào ngày 20/09/2026." class="whitespace-nowrap px-4 py-1.5 rounded-full bg-gray-100 hover:bg-vinmec-50 hover:text-vinmec-600 border border-gray-200 hover:border-vinmec-200 text-xs font-medium text-gray-600 transition-colors">
+          <i class="fas fa-search mr-1"></i> Tra lịch Da liễu
+        </button>
+        <button data-query="Tôi muốn đặt lịch nhưng chưa đồng ý chia sẻ số điện thoại. Trợ lý cần thông tin nào và có thể tiếp tục đến bước nào?" class="whitespace-nowrap px-4 py-1.5 rounded-full bg-gray-100 hover:bg-vinmec-50 hover:text-vinmec-600 border border-gray-200 hover:border-vinmec-200 text-xs font-medium text-gray-600 transition-colors">
+          <i class="fas fa-shield-alt mr-1"></i> Quyền riêng tư
+        </button>
+        <button data-query="Bệnh nhân mô phỏng PT-1003 đang đau ngực dữ dội, khó thở và ngất. Hãy đặt lịch khám tim mạch sáng mai." class="whitespace-nowrap px-4 py-1.5 rounded-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-medium transition-colors">
+          <i class="fas fa-truck-medical mr-1"></i> Khẩn cấp
+        </button>
+      </div>
+
+      <!-- Form -->
+      <form class="flex items-end gap-2 relative" id="form">
+        <div class="relative w-full">
+          <input id="message" aria-label="Tin nhắn" autocomplete="off" placeholder="Nhập câu hỏi về lịch khám..." required class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-vinmec-500 focus:border-vinmec-500 block p-3.5 pr-12 transition-shadow shadow-inner">
+        </div>
+        <button id="send" type="submit" class="bg-vinmec-500 hover:bg-vinmec-600 text-white rounded-xl px-5 py-3.5 flex items-center justify-center transition-colors focus:ring-4 focus:outline-none focus:ring-vinmec-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 h-[50px]">
+          <i class="fas fa-paper-plane"></i>
+          <span class="sr-only">Gửi</span>
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+  <script>
+    const chat = document.querySelector('#chat'); 
+    const form = document.querySelector('#form'); 
+    const input = document.querySelector('#message'); 
+    const send = document.querySelector('#send');
+    let sessionId = globalThis.crypto?.randomUUID?.() || `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    
+    // Convert markdown basic formatting to HTML (bold, lists, line breaks)
+    function formatMessage(text) {
+      let html = text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br/>');
+      return html;
+    }
+
+    function addMessage(text, role) { 
+      const wrapper = document.createElement('div');
+      wrapper.className = `flex items-start gap-3 w-full message-bubble ${role === 'user' ? 'justify-end' : ''}`;
+      
+      let avatar = '';
+      let bubbleClass = '';
+      
+      if (role === 'assistant') {
+        avatar = `
+          <div class="w-8 h-8 rounded-full bg-vinmec-100 text-vinmec-600 flex items-center justify-center flex-shrink-0 mt-1 shadow-sm border border-vinmec-200">
+            <i class="fas fa-robot text-sm"></i>
+          </div>`;
+        bubbleClass = 'bg-white border border-gray-200 text-gray-800 rounded-2xl rounded-tl-sm shadow-sm';
+      } else if (role === 'user') {
+        bubbleClass = 'bg-vinmec-600 text-white rounded-2xl rounded-tr-sm shadow-md';
+      } else if (role === 'typing') {
+        avatar = `
+          <div class="w-8 h-8 rounded-full bg-vinmec-100 text-vinmec-600 flex items-center justify-center flex-shrink-0 mt-1 shadow-sm border border-vinmec-200">
+            <i class="fas fa-robot text-sm"></i>
+          </div>`;
+        bubbleClass = 'bg-gray-100 border border-gray-200 rounded-2xl rounded-tl-sm shadow-sm px-4 py-3';
+        text = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+      }
+
+      wrapper.innerHTML = `
+        ${role !== 'user' ? avatar : ''}
+        <div class="${bubbleClass} px-4 py-3 max-w-[85%] text-sm leading-relaxed overflow-hidden break-words">
+          ${role === 'typing' ? text : formatMessage(text)}
+        </div>
+      `;
+      
+      if (role === 'typing') {
+        wrapper.id = 'typing-indicator';
+      }
+      
+      chat.append(wrapper); 
+      chat.scrollTop = chat.scrollHeight; 
+    }
+
+    function removeTyping() {
+      const el = document.getElementById('typing-indicator');
+      if (el) el.remove();
+    }
+
+    function displayAnswer(data) {
+      const booked = data.events.some(e => e.tool_name === 'book_medical_appointment');
+      const availability = data.events.find(e => e.tool_name === 'get_doctor_availability' && e.observation?.status === 'SUCCESS');
+      
+      if (!booked && availability) {
+        const doctors = availability.observation.data.doctors || [];
+        const lines = doctors.flatMap(d => [
+          `**${d.display_name}** (${d.specialty})`,
+          ...d.available_slots.map(slot => `• ${new Date(slot).toLocaleString('vi-VN', { dateStyle:'short', timeStyle:'short' })}`)
+        ]);
+        return `**Lịch khả dụng mô phỏng:**\n${lines.join('\n')}\n\nVui lòng chọn bác sĩ/khung giờ và xác nhận đồng ý chia sẻ dữ liệu tối thiểu trước khi đặt.`;
+      }
+      return data.answer;
+    }
+    
+    function updateEvents(data) {
+      const eventsEl = document.querySelector('#events');
+      if(data.events && data.events.length > 0) {
+        const eventsHtml = data.events.map(e => {
+          let icon = 'fa-cog';
+          let color = 'text-gray-500';
+          if(e.action_type === 'TOOL_CALL') { icon = 'fa-wrench'; color = 'text-blue-500'; }
+          else if(e.action_type === 'THOUGHT') { icon = 'fa-lightbulb'; color = 'text-amber-500'; }
+          else if(e.action_type === 'REPLY') { icon = 'fa-reply'; color = 'text-green-500'; }
+          
+          return `<div class="mb-3 border-b border-gray-100 pb-2 last:border-0"><div class="flex items-center gap-1.5 font-semibold text-gray-700"><i class="fas ${icon} ${color}"></i> ${e.action_type}</div><div class="pl-5 mt-1 text-gray-500">${e.tool_name ? `<span class="bg-gray-100 px-1.5 py-0.5 rounded text-[10px] border border-gray-200">${e.tool_name}</span>` : (e.thought ? e.thought.substring(0,60)+'...' : '')}</div></div>`;
+        }).join('');
+        eventsEl.innerHTML = eventsHtml + `<div class="mt-4 pt-3 border-t border-gray-200 text-center text-vinmec-500 font-semibold"><i class="fas fa-history"></i> Lượt hội thoại: ${data.memory_turns}/4</div>`;
+      }
+    }
+
+    async function ask(message) {
+      addMessage(message,'user'); 
+      input.value=''; 
+      send.disabled=true; 
+      send.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      
+      setTimeout(() => addMessage('', 'typing'), 300);
+      
+      try {
+        const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,session_id:sessionId})});
+        const data=await res.json(); 
+        
+        removeTyping();
+        if(!res.ok) throw new Error(data.error||'Không thể kết nối demo.');
+        
+        sessionId=data.session_id; 
+        addMessage(displayAnswer(data),'assistant'); 
+        
+        const isMock = data.provider === 'MockOfflineProvider';
+        const providerEl = document.querySelector('#provider');
+        providerEl.textContent = isMock ? 'Mock local' : 'Live API';
+        if(isMock) {
+            providerEl.parentElement.className = "flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold border border-emerald-200";
+        } else {
+            providerEl.parentElement.className = "flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold border border-blue-200";
+            providerEl.parentElement.querySelector('.bg-emerald-500').className = "relative inline-flex rounded-full h-2 w-2 bg-blue-500";
+            providerEl.parentElement.querySelector('.bg-emerald-400').className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75";
+        }
+        
+        updateEvents(data);
+      } catch(error) { 
+        removeTyping();
+        addMessage(`❌ Lỗi: ${error.message}`,'assistant'); 
+      } finally { 
+        send.disabled=false; 
+        send.innerHTML = '<i class="fas fa-paper-plane"></i>';
+        input.focus(); 
+      }
+    }
+
+    form.addEventListener('submit', event => { 
+      event.preventDefault(); 
+      const message=input.value.trim(); 
+      if(message) ask(message); 
+    });
+    
+    document.querySelectorAll('[data-query]').forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        ask(button.dataset.query);
+      });
+    });
+  </script>
+</body>
+</html>
